@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Vaporwave</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            --neon-pink: #ff00ff;
+            --neon-blue: #00ffff;
+            --dark-purple: #1e0034;
+            --grid-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #1e0034 0%, #000000 100%);
+            color: var(--neon-pink);
+            font-family: 'VT323', monospace;
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+        }
+
+        .game-title {
+            font-size: 4rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            text-shadow: 0 0 15px var(--neon-pink), 0 0 30px var(--neon-blue);
+        }
+
+        .game-title span {
+            color: var(--neon-blue);
+        }
+
+        .game-info-container {
+            display: flex;
+            gap: 40px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+
+        #gameCanvas {
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-pink);
+        }
+
+        .side-panel {
+            width: 150px;
+            padding: 20px;
+            border: 2px solid var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-blue);
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stat-item {
+            font-size: 1.5rem;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .stat-item span {
+            display: block;
+            font-size: 2.5rem;
+            text-shadow: 0 0 8px var(--neon-blue);
+            color: var(--neon-blue);
+        }
+        
+        #nextPieceCanvas {
+            border: 1px dashed var(--neon-pink);
+            margin-top: 10px;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            text-align: center;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px var(--neon-pink), 0 0 30px var(--neon-blue);
+            animation: pulse 1.5s infinite alternate;
+            display: none;
+        }
+
+        @keyframes pulse {
+            from { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            to { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        }
+
+        .control-info {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+        
+        .footer-large-text {
+            font-size: 1.5rem;
+            text-shadow: 0 0 8px var(--neon-blue);
+            color: var(--neon-blue);
+        }
+
+        .start-button {
+            padding: 15px 30px;
+            background-color: transparent;
+            border: 2px solid var(--neon-pink);
+            color: var(--neon-pink);
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-pink);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .start-button:hover {
+            background-color: var(--neon-pink);
+            color: var(--dark-purple);
+            text-shadow: none;
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        .footer-info {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">TETRIS <span>VAPORWAVE</span></h1>
+        </div>
+        <div class="game-info-container">
+            <canvas id="gameCanvas" width="300" height="600"></canvas>
+            <div class="side-panel">
+                <div class="stat-item">
+                    Pontos
+                    <span id="score">0</span>
+                </div>
+                <div class="stat-item">
+                    Próxima peça
+                    <canvas id="nextPieceCanvas" width="120" height="80"></canvas>
+                </div>
+                <div class="stat-item">
+                    Linhas
+                    <span id="lines">0</span>
+                </div>
+                <div class="stat-item">
+                    Nível
+                    <span id="level">1</span>
+                </div>
+                <button id="startButton" class="start-button">Iniciar Jogo</button>
+            </div>
+        </div>
+        <div class="control-info">
+            Use as setas para mover e a seta para cima para girar.
+        </div>
+        <div class="footer-info">
+            Criado por: <span class="footer-large-text">Gabriel Hierro Oliveira Farias</span>
+            <br>
+            <span class="footer-large-text">EETEPA VILHENA ALVES</span>
+        </div>
+    </div>
+
+    <div id="gameMessage" class="game-message"></div>
+
+    <script>
+        // Game constants
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('nextPieceCanvas');
+        const nextCtx = nextCanvas.getContext('2d');
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 30;
+
+        // Music and Sound
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        const synthBass = new Tone.MonoSynth({
+            oscillator: { type: "sawtooth" },
+            envelope: {
+                attack: 0.1,
+                decay: 0.4,
+                sustain: 0.7,
+                release: 0.8,
+            },
+            filter: {
+                Q: 6,
+                type: "lowpass",
+                rolloff: -24
+            }
+        }).toDestination();
+        const scoreSynth = new Tone.Synth({
+            oscillator: { type: "triangle" },
+            envelope: {
+                attack: 0.05,
+                decay: 0.2,
+                sustain: 0.1,
+                release: 0.3
+            }
+        }).toDestination();
+
+        let bassLoop = null;
+        let melodyLoop = null;
+
+        const startMusic = () => {
+            if (Tone.Transport.state === 'started') return;
+            Tone.start();
+            Tone.Transport.bpm.value = 100;
+            
+            const bassPart = new Tone.Sequence((time, note) => {
+                synthBass.triggerAttackRelease(note, "8n", time);
+            }, ["C2", "G2", "A#2", "F2"]).start(0);
+
+            const melodyPart = new Tone.Sequence((time, note) => {
+                synth.triggerAttackRelease(note, "8n", time);
+            }, ["C4", "Eb4", "F4", "G4", "A#4", "G4", "F4", "Eb4"]).start(0);
+
+            Tone.Transport.start();
+            bassLoop = bassPart;
+            melodyLoop = melodyPart;
+        };
+
+        const stopMusic = () => {
+            Tone.Transport.stop();
+            if (bassLoop) bassLoop.stop();
+            if (melodyLoop) melodyLoop.stop();
+        };
+        
+        const playClearSound = () => {
+            scoreSynth.triggerAttackRelease("C5", "8n");
+            setTimeout(() => scoreSynth.triggerAttackRelease("E5", "8n"), 100);
+            setTimeout(() => scoreSynth.triggerAttackRelease("G5", "8n"), 200);
+        };
+        
+        const playGameOverSound = () => {
+             scoreSynth.triggerAttackRelease("C3", "4n");
+             setTimeout(() => scoreSynth.triggerAttackRelease("B2", "4n"), 300);
+             setTimeout(() => scoreSynth.triggerAttackRelease("A2", "4n"), 600);
+        };
+
+        // Game state
+        let board = [];
+        let piece = null;
+        let nextPiece = null;
+        let score = 0;
+        let lines = 0;
+        let level = 1;
+        let dropCounter = 0;
+        let dropInterval = 500; // Reduzido para 500ms para o jogo começar mais rápido
+        let lastTime = 0;
+        let isPlaying = false;
+
+        // Tetromino shapes (I, J, L, O, S, T, Z)
+        const PIECES = 'I O T S Z J L'.split(' ');
+        const SHAPES = {
+            'I': [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+            'J': [[1, 0, 0], [1, 1, 1], [0, 0, 0]],
+            'L': [[0, 0, 1], [1, 1, 1], [0, 0, 0]],
+            'O': [[1, 1], [1, 1]],
+            'S': [[0, 1, 1], [1, 1, 0], [0, 0, 0]],
+            'T': [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
+            'Z': [[1, 1, 0], [0, 1, 1], [0, 0, 0]]
+        };
+        const COLORS = {
+            'I': '#00ffff', // Cyan
+            'O': '#ffff00', // Yellow
+            'T': '#800080', // Purple
+            'S': '#00ff00', // Green
+            'Z': '#ff0000', // Red
+            'J': '#0000ff', // Blue
+            'L': '#ff7f00'  // Orange
+        };
+
+        const createBoard = () => {
+            return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+        };
+
+        const getRandomPiece = () => {
+            const type = PIECES[Math.floor(Math.random() * PIECES.length)];
+            return {
+                shape: SHAPES[type],
+                color: COLORS[type],
+                x: Math.floor(COLS / 2) - Math.floor(SHAPES[type][0].length / 2),
+                y: 0
+            };
+        };
+
+        const drawPiece = (piece, context, offsetX = 0, offsetY = 0) => {
+            if (!piece) return;
+            const { shape, color, x, y } = piece;
+            shape.forEach((row, ry) => {
+                row.forEach((value, rx) => {
+                    if (value) {
+                        context.fillStyle = color;
+                        context.shadowColor = color;
+                        context.shadowBlur = 10;
+                        context.fillRect((x + rx + offsetX) * BLOCK_SIZE, (y + ry + offsetY) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                        context.shadowBlur = 0;
+                        context.strokeStyle = 'rgba(255,255,255,0.2)';
+                        context.strokeRect((x + rx + offsetX) * BLOCK_SIZE, (y + ry + offsetY) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                    }
+                });
+            });
+        };
+
+        const drawBoard = () => {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.strokeRect(c * BLOCK_SIZE, r * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                }
+            }
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        ctx.fillStyle = value;
+                        ctx.shadowColor = value;
+                        ctx.shadowBlur = 10;
+                        ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                        ctx.shadowBlur = 0;
+                        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                        ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                    }
+                });
+            });
+        };
+
+        const drawNextPiece = () => {
+            nextCtx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+            if (nextPiece) {
+                const shapeWidth = nextPiece.shape[0].length;
+                const shapeHeight = nextPiece.shape.length;
+                const offsetX = (nextCanvas.width / BLOCK_SIZE - shapeWidth) / 2;
+                const offsetY = (nextCanvas.height / BLOCK_SIZE - shapeHeight) / 2;
+                drawPiece({ ...nextPiece, x: 0, y: 0 }, nextCtx, offsetX, offsetY);
+            }
+        };
+
+        const checkCollision = (p, offX = 0, offY = 0) => {
+            const { shape, x, y } = p;
+            for (let ry = 0; ry < shape.length; ry++) {
+                for (let rx = 0; rx < shape[ry].length; rx++) {
+                    if (shape[ry][rx]) {
+                        const newX = x + rx + offX;
+                        const newY = y + ry + offY;
+                        // Verifica se a colisão está fora dos limites ou com uma peça existente
+                        if (newY >= ROWS || newX < 0 || newX >= COLS || (board[newY] && board[newY][newX])) {
+                            return true;
+                        }
+                    }
+                };
+            };
+            return false;
+        };
+
+        const mergePiece = () => {
+            const { shape, color, x, y } = piece;
+            shape.forEach((row, ry) => {
+                row.forEach((value, rx) => {
+                    if (value) {
+                        board[y + ry][x + rx] = color;
+                    }
+                });
+            });
+        };
+
+        const rotatePiece = () => {
+            const matrix = piece.shape;
+            const N = matrix.length;
+            const newMatrix = Array.from({ length: N }, () => Array(N).fill(0));
+            for (let i = 0; i < N; i++) {
+                for (let j = 0; j < N; j++) {
+                    newMatrix[j][N - 1 - i] = matrix[i][j];
+                }
+            }
+            const oldShape = piece.shape;
+            piece.shape = newMatrix;
+            if (checkCollision(piece)) {
+                piece.shape = oldShape; // Revert
+            }
+        };
+
+        const dropPiece = () => {
+            piece.y++;
+            if (checkCollision(piece)) {
+                piece.y--;
+                mergePiece();
+                checkLines();
+                piece = nextPiece;
+                nextPiece = getRandomPiece();
+                drawNextPiece();
+                if (checkCollision(piece)) {
+                    gameOver();
+                }
+            }
+        };
+
+        const checkLines = () => {
+            let linesCleared = 0;
+            for (let y = ROWS - 1; y >= 0; y--) {
+                if (board[y].every(cell => cell !== 0)) {
+                    board.splice(y, 1);
+                    board.unshift(Array(COLS).fill(0));
+                    y++; // Re-check the new row
+                    linesCleared++;
+                }
+            }
+            if (linesCleared > 0) {
+                updateScore(linesCleared);
+                playClearSound();
+            }
+        };
+
+        const updateScore = (linesCleared) => {
+            const points = [0, 40, 100, 300, 1200];
+            score += points[linesCleared] * level;
+            lines += linesCleared;
+            level = Math.floor(lines / 10) + 1;
+            dropInterval = 1000 - (level - 1) * 75;
+            document.getElementById('score').innerText = score;
+            document.getElementById('lines').innerText = lines;
+            document.getElementById('level').innerText = level;
+        };
+
+        const updateGame = (time = 0) => {
+            if (!isPlaying) return;
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) {
+                dropPiece();
+                dropCounter = 0;
+            }
+            drawBoard();
+            drawPiece(piece, ctx);
+            requestAnimationFrame(updateGame);
+        };
+
+        const startGame = () => {
+            isPlaying = true; // Permite iniciar o jogo, mesmo se já estiver em andamento
+            board = createBoard();
+            piece = getRandomPiece();
+            nextPiece = getRandomPiece();
+            score = 0;
+            lines = 0;
+            level = 1;
+            dropInterval = 500; // Resetar para o valor inicial mais rápido
+            document.getElementById('score').innerText = score;
+            document.getElementById('lines').innerText = lines;
+            document.getElementById('level').innerText = level;
+            document.getElementById('startButton').innerText = 'Reiniciar Jogo';
+            document.getElementById('gameMessage').style.display = 'none';
+            drawNextPiece();
+            startMusic();
+            updateGame();
+        };
+
+        const gameOver = () => {
+            isPlaying = false;
+            stopMusic();
+            playGameOverSound();
+            const gameMessage = document.getElementById('gameMessage');
+            gameMessage.innerText = 'Fim de Jogo\nPontos: ' + score;
+            gameMessage.style.display = 'block';
+            document.getElementById('startButton').innerText = 'Iniciar Jogo'; // Alterar texto do botão
+        };
+        
+        // Event listeners
+        document.addEventListener('keydown', e => {
+            if (!isPlaying) return;
+            // Previne a ação padrão do navegador para as setas do teclado
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                    if (!checkCollision(piece, -1)) piece.x--;
+                    break;
+                case 'ArrowRight':
+                    if (!checkCollision(piece, 1)) piece.x++;
+                    break;
+                case 'ArrowDown':
+                    dropPiece();
+                    break;
+                case 'ArrowUp':
+                    rotatePiece();
+                    break;
+            }
+        });
+
+        document.getElementById('startButton').addEventListener('click', startGame);
+        
+    </script>
+</body>
+</html>

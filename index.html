@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Ocean | Dev Freelance</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Linhas de grade de fundo -->
+    <div class="bg-grid"></div>
+
+    <!-- Efeito de Transição de Onda Suave (Estilo Praia / Persona 3) -->
+    <div id="wave-transition" class="wave-transition">
+        <svg class="wave-svg" viewBox="0 0 1440 900" preserveAspectRatio="none">
+            <path class="wave-path" d="M0,0 L0,900 L1440,900 L1440,0 C1200,300 960,-150 720,250 C480,650 240,50 0,0 Z"></path>
+        </svg>
+    </div>
+
+    <header class="game-navbar">
+        <div class="logo">DATA_OCEAN//</div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="#vagas" class="ribbon-link" onclick="transicaoPagina(event, 'vagas')">Encontrar Jobs</a></li>
+                <li><a href="#contratantes" class="ribbon-link" onclick="transicaoPagina(event, 'contratantes')">Contratar Devs</a></li>
+                <li><a href="#sobre" class="ribbon-link" onclick="transicaoPagina(event, 'sobre')">Sobre_</a></li>
+                <li><a href="#contato" class="ribbon-link" onclick="transicaoPagina(event, 'contato')">Contato</a></li>
+            </ul>
+        </nav>
+        <button class="btn-persona" onclick="abrirModal()">ACESSAR_SISTEMA</button>
+    </header>
+
+    <main>
+        <!-- SEÇÃO HERO & VAGAS -->
+        <section id="vagas" class="content-section active">
+            <div class="jobs-grid">
+    <div class="job-card">
+        <div class="job-img-container">
+            <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80" alt="Refatoração de Interface">
+            <div class="job-tag">FRONT_END_DEV</div>
+        </div>
+        <div class="job-content-box">
+            <h3>Refatoração de Interface Dinâmica</h3>
+            <p>Buscamos especialista em animações fluidas e micro-interações para e-commerce em React. Necessário conhecimento em CSS avançado.</p>
+            <div class="job-footer">
+                <span>$ 45 - 80 / h</span>
+                <button class="btn-card" onclick="abrirModal()">Candidatar-se</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="job-card">
+        <div class="job-img-container">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80" alt="UI/UX Dashboard">
+            <div class="job-tag">INTERFACE_DESIGN</div>
+        </div>
+        <div class="job-content-box">
+            <h3>UI/UX para Dashboard Corporativo</h3>
+            <p>Criação de protótipo de alta fidelidade no Figma para sistema SaaS financeiro. Estilo minimalista com foco em usabilidade e tabelas de dados.</p>
+            <div class="job-footer">
+                <span>$ 30 - 55 / h</span>
+                <button class="btn-card" onclick="abrirModal()">Candidatar-se</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="job-card">
+        <div class="job-img-container">
+            <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80" alt="Integração de API">
+            <div class="job-tag">FULL_STACK</div>
+        </div>
+        <div class="job-content-box">
+            <h3>Integração de API e Ajuste de Layout</h3>
+            <p>Conectar banco de dados mockado a uma interface Next.js existente. Ajustar responsividade de componentes mobile quebrados.</p>
+            <div class="job-footer">
+                <span>$ 60 - 95 / h</span>
+                <button class="btn-card" onclick="abrirModal()">Candidatar-se</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="job-card">
+        <div class="job-img-container">
+            <img src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=600&q=80" alt="Landing Page">
+            <div class="job-tag">WEB_DEVELOPER</div>
+        </div>
+        <div class="job-content-box">
+            <h3>Landing Page de Alta Conversão (Tailwind)</h3>
+            <p>Desenvolvimento rápido de página de vendas responsiva. Otimização de performance (Core Web Vitals) e compressão rigorosa de mídias.</p>
+            <div class="job-footer">
+                <span>$ 25 - 40 / h</span>
+                <button class="btn-card" onclick="abrirModal()">Candidatar-se</button>
+            </div>
+        </div>
+    </div>
+</div>
+        </section>
+
+        <!-- SEÇÃO CONTRATAR DEVS -->
+        <section id="contratantes" class="content-section">
+            <div class="section-container">
+                <div class="section-header-persona">
+                    <h2 class="section-title">// PROTOCOLO_CONTRATANTE // PUBLICAR_PROJETOS</h2>
+                    <span class="vagas-count">STATUS: [ATIVO]</span>
+                </div>
+                <div class="info-box">
+                    <h3>Como Funciona para Contratar Desenvolvedores</h3>
+                    <p>Precisa de um Front-End de elite para o seu sistema? Publique sua vaga na rede da Digital Ocean e receba propostas instantâneas de especialistas em código limpo, interfaces dinâmicas e responsividade.</p>
+                    <div class="steps-grid">
+                        <div class="step-card">
+                            <span>01</span>
+                            <h4>Publique a Vaga</h4>
+                            <p>Defina os requisitos técnicos e o escopo do projeto front-end.</p>
+                        </div>
+                        <div class="step-card">
+                            <span>02</span>
+                            <h4>Analise os Devs</h4>
+                            <p>Avalie portfólios baseados em projetos reais e escolha o melhor talento.</p>
+                        </div>
+                        <div class="step-card">
+                            <span>03</span>
+                            <h4>Pague com Segurança</h4>
+                            <p>O repasse ao desenvolvedor é validado mediante entrega e aprovação do código.</p>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 30px;" onclick="abrirModal()">PUBLICAR PROJETO AGORA</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO SOBRE -->
+        <section id="sobre" class="content-section">
+            <div class="section-container">
+                <div class="section-header-persona">
+                    <h2 class="section-title">// SOBRE_A_REDE // DIGITAL_OCEAN</h2>
+                    <span class="vagas-count">VERSÃO: [2.0_RELOAD]</span>
+                </div>
+                <div class="about-grid">
+                    <div class="about-text">
+                        <h3>Mergulhe Fundo no Desenvolvimento Front-End</h3>
+                        <p>A <strong>Digital Ocean</strong> nasceu com o propósito de conectar programadores talentosos a projetos desafiadores. Inspirada na estética cinética de alta imersão, nossa plataforma prioriza a experiência do usuário (UI/UX), código semântico em HTML5 e estilização avançada.</p>
+                        <p>Desenvolvido como projeto de destaque acadêmico, o sistema une o rigor técnico da engenharia de software com a criatividade do design imersivo.</p>
+                    </div>
+                    <div class="stats-box">
+                        <div class="stat-item">
+                            <h4>+1.400</h4>
+                            <p>Devs Cadastrados</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>+850</h4>
+                            <p>Projetos Entregues</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>100%</h4>
+                            <p>Foco em Front-End</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO CONTATO -->
+        <section id="contato" class="content-section">
+            <div class="section-container">
+                <div class="section-header-persona">
+                    <h2 class="section-title">// CANAL_DE_COMUNICAÇÃO // SUPORTE</h2>
+                    <span class="vagas-count">FREQUÊNCIA: [ONLINE]</span>
+                </div>
+                <div class="contact-box">
+                    <p>Tem alguma dúvida sobre a plataforma ou quer parcerias estratégicas? Envie uma mensagem direta para o nosso terminal central.</p>
+                    <form onsubmit="event.preventDefault(); alert('Mensagem transmitida com sucesso para o servidor!');">
+                        <input type="text" placeholder="SEU_NOME" required>
+                        <input type="email" placeholder="SEU_EMAIL" required>
+                        <textarea placeholder="DIGITE_SUA_MENSAGEM..." rows="4" required style="background: var(--bg-deep); border: 1px solid var(--text-muted); padding: 12px; color: var(--text-white); font-family: var(--font-mono); width: 100%;"></textarea>
+                        <button type="submit" class="btn-persona" style="width: 100%; margin-top: 10px;">TRANSMITIR_MENSAGEM</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="game-footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Digital Ocean // Desenvolvido com Foco em Front-End & Vibecoding.</p>
+            <div class="social-links">
+                <span>GitHub</span> | <span>LinkedIn</span> | <span>Instagram</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de cadastro -->
+    <div id="modalCadastro" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal()">&times;</span>
+            <h3>INICIALIZAR_CADASTRO</h3>
+            <p class="warning-text">Aviso: Banco de dados offline. Simulação de interface.</p>
+            <form onsubmit="event.preventDefault();">
+                <input type="text" placeholder="USER_NAME" required>
+                <input type="email" placeholder="EMAIL" required>
+                <button type="submit" class="btn-persona" onclick="alert('Simulação de cadastro concluída!')">REGISTRAR</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

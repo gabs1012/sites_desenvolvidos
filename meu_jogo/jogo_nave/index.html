@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #fca311;
+            --secondary-color: #14213d;
+            --background-color: #000;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px rgba(252, 163, 17, 0.7);
+            animation: pulse 2s infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        canvas {
+            border: 2px solid var(--primary-color);
+            background-color: var(--background-color);
+            box-shadow: 0 0 20px rgba(252, 163, 17, 0.5);
+            border-radius: 10px;
+        }
+
+        #game-info {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            background-color: rgba(20, 33, 61, 0.7);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--primary-color);
+        }
+
+        #instructions {
+            margin-top: 10px;
+            font-size: 1rem;
+            color: #ccc;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--secondary-color);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid var(--primary-color);
+            text-align: center;
+            box-shadow: 0 0 25px rgba(252, 163, 17, 0.7);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-content h2 {
+            font-size: 2rem;
+            margin: 0 0 15px;
+        }
+
+        .modal-content p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-content button {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .modal-content button:hover {
+            background-color: #ffb74d;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <h1>Space Shooter</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="game-info">
+        <div id="score">Pontuação: 0</div>
+        <div id="instructions">Use as setas do teclado para mover e a barra de espaço para atirar.</div>
+    </div>
+
+    <!-- Modal para a tela de fim de jogo -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h2>Fim de Jogo!</h2>
+            <p id="finalScore"></p>
+            <button id="restartButton">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais do jogo
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameWidth = canvas.width;
+        const gameHeight = canvas.height;
+
+        let player;
+        let projectiles = [];
+        let enemies = [];
+        let score = 0;
+        let gameOver = false;
+        let lastEnemySpawnTime = 0;
+        const enemySpawnInterval = 1000; // Milissegundos
+
+        const keys = {};
+
+        // Variáveis para as imagens
+        const playerImage = new Image();
+        playerImage.src = 'https://e7.pngegg.com/pngimages/586/793/png-clipart-spacecraft-sprite-2d-computer-graphics-clash-of-tanks-two-dimensional-space-sprite-3d-computer-graphics-spacecraft.png';
+        const projectileImage = new Image();
+        projectileImage.src = 'https://placehold.co/4x10/00ff00/00ff00';
+        const enemyImage = new Image();
+        enemyImage.src = 'https://i.pinimg.com/originals/84/1f/39/841f39ac405ff3d8cc2c0be00fcfbb98.gif';
+
+        let imagesLoaded = 0;
+        const totalImages = 3;
+
+        const onImageLoad = () => {
+            imagesLoaded++;
+            if (imagesLoaded === totalImages) {
+                initGame();
+            }
+        };
+
+        playerImage.onload = onImageLoad;
+        projectileImage.onload = onImageLoad;
+        enemyImage.onload = onImageLoad;
+        
+        // Em caso de falha no carregamento da imagem, ainda tentamos iniciar o jogo
+        playerImage.onerror = onImageLoad;
+        projectileImage.onerror = onImageLoad;
+        enemyImage.onerror = onImageLoad;
+
+        // Configurações do fundo estrelado
+        const stars = [];
+        const numStars = 200;
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * gameWidth,
+                y: Math.random() * gameHeight,
+                size: Math.random() * 2,
+                speed: Math.random() * 0.5 + 0.1
+            });
+        }
+
+        // Classe para o jogador (nave)
+        class Player {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.speed = 5;
+            }
+
+            // Desenha a nave do jogador
+            draw() {
+                ctx.drawImage(playerImage, this.x, this.y, this.width, this.height);
+            }
+
+            // Atualiza a posição da nave
+            update() {
+                if (keys['ArrowLeft'] && this.x > 0) {
+                    this.x -= this.speed;
+                }
+                if (keys['ArrowRight'] && this.x < gameWidth - this.width) {
+                    this.x += this.speed;
+                }
+                if (keys['ArrowUp'] && this.y > 0) {
+                    this.y -= this.speed;
+                }
+                if (keys['ArrowDown'] && this.y < gameHeight - this.height) {
+                    this.y += this.speed;
+                }
+            }
+
+            // Cria um novo projétil
+            shoot() {
+                projectiles.push(new Projectile(this.x + this.width / 2 - 2, this.y, 4, 10));
+            }
+        }
+
+        // Classe para os projéteis
+        class Projectile {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.speed = 7;
+            }
+
+            // Desenha o projétil
+            draw() {
+                ctx.drawImage(projectileImage, this.x, this.y, this.width, this.height);
+            }
+
+            // Atualiza a posição do projétil
+            update() {
+                this.y -= this.speed;
+            }
+        }
+
+        // Classe para os inimigos
+        class Enemy {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.speed = Math.random() * 2 + 1; // Velocidade aleatória
+            }
+
+            // Desenha o inimigo
+            draw() {
+                ctx.drawImage(enemyImage, this.x, this.y, this.width, this.height);
+            }
+
+            // Atualiza a posição do inimigo
+            update() {
+                this.y += this.speed;
+            }
+        }
+
+        // Função para desenhar o fundo de estrelas
+        function drawBackground() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, gameWidth, gameHeight);
+
+            ctx.fillStyle = 'white';
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                star.y += star.speed;
+
+                if (star.y > gameHeight) {
+                    star.y = 0;
+                    star.x = Math.random() * gameWidth;
+                }
+            });
+        }
+
+        // Função para detecção de colisão
+        function checkCollision(obj1, obj2) {
+            return obj1.x < obj2.x + obj2.width &&
+                   obj1.x + obj1.width > obj2.x &&
+                   obj1.y < obj2.y + obj2.height &&
+                   obj1.y + obj1.height > obj2.y;
+        }
+
+        // Função para a tela de fim de jogo
+        function showGameOver() {
+            gameOver = true;
+            document.getElementById('gameOverModal').style.display = 'flex';
+            document.getElementById('finalScore').innerText = `Sua pontuação final foi: ${score}`;
+        }
+
+        // Função principal do jogo
+        function gameLoop(timestamp) {
+            if (gameOver) {
+                return;
+            }
+
+            // Limpa o canvas
+            ctx.clearRect(0, 0, gameWidth, gameHeight);
+
+            drawBackground();
+
+            // Atualiza e desenha o jogador
+            player.update();
+            player.draw();
+
+            // Gerencia os inimigos
+            if (timestamp - lastEnemySpawnTime > enemySpawnInterval) {
+                enemies.push(new Enemy(Math.random() * (gameWidth - 50), -50, 40, 40));
+                lastEnemySpawnTime = timestamp;
+            }
+
+            // Atualiza e desenha os projéteis
+            projectiles = projectiles.filter(p => {
+                p.update();
+                p.draw();
+                return p.y > 0;
+            });
+
+            // Define o preenchimento para diminuir a área da "hitbox" do inimigo
+            const hitboxPadding = 15;
+
+            // Atualiza e desenha os inimigos, verificando colisões
+            enemies = enemies.filter(enemy => {
+                enemy.update();
+                enemy.draw();
+
+                // Cria uma "hitbox" menor para o inimigo para uma colisão mais precisa
+                const enemyHitbox = {
+                    x: enemy.x + hitboxPadding,
+                    y: enemy.y + hitboxPadding,
+                    width: enemy.width - hitboxPadding * 2,
+                    height: enemy.height - hitboxPadding * 2
+                };
+
+                // Colisão entre projétil e inimigo
+                const hitByProjectile = projectiles.some((p, pIndex) => {
+                    if (checkCollision(p, enemyHitbox)) {
+                        projectiles.splice(pIndex, 1); // Remove o projétil
+                        score += 10;
+                        document.getElementById('score').innerText = `Pontuação: ${score}`;
+                        return true;
+                    }
+                    return false;
+                });
+
+                // Colisão entre jogador e inimigo
+                if (checkCollision(player, enemyHitbox)) {
+                    showGameOver();
+                }
+                
+                // Remove inimigos que saíram da tela ou foram atingidos
+                return !hitByProjectile && enemy.y < gameHeight;
+            });
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Inicializa o jogo
+        function initGame() {
+            player = new Player(gameWidth / 2 - 25, gameHeight - 70, 50, 50);
+            projectiles = [];
+            enemies = [];
+            score = 0;
+            gameOver = false;
+            document.getElementById('score').innerText = `Pontuação: ${score}`;
+            document.getElementById('gameOverModal').style.display = 'none';
+            lastEnemySpawnTime = 0;
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event Listeners
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === ' ' && !gameOver) {
+                player.shoot();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        document.getElementById('restartButton').addEventListener('click', () => {
+            initGame();
+        });
+
+    </script>
+</body>
+</html>
